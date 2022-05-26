@@ -1,0 +1,16 @@
+{
+  "name": "dictionary_scrapper",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "author": "Bitsody",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "axios": "0.27.2",
+    "query-html": "1.0.0"
+  }
+}
