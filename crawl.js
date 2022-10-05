@@ -1,84 +1,126 @@
 import axios from "axios";
-import q from "query-html";
+import cheerio from "cheerio";
+const url = "https://oa01.widget.ega.eu/widget/fahrzeuge/alle/seite/3?dontCompress=1";
 
-async function start() {
-    const words = ["kedi", "kapı", "ekmek"];
-    const dictionary = [];
-    for (const word of words) {
-        console.log("word:", word);
-        for await (const res of get_data(word)) {
-            if (!res) {
-                continue;
-            }
-            dictionary.push({key: word, value: res});
-        }
+
+
+
+fetchData(url).then( (res) => {
+
+    const html = res.data;
+    const $ = cheerio.load(html);
+    const carPrice = $('.search-result-vehicle-box>.vehicle-price-container>.price');
+    // carPrice.each(function() {
+    //     let price = $(this).find('a').text().trim();
+    //     console.log('carPrice:', price);
+    // });
+
+
+
+    const carName = $('.vehicle-title>a .brand-and-model');
+    // carName.each(function() {
+    //     let title = $(this).text().trim();
+    //     console.log('carName:', title);
+    // });
+
+
+
+
+    const carSubtitle = $('.search-result-vehicle-box>.vehicle-info-container .model-zusatz');
+    // carSubtitle.each(function() {
+    //     let title = $(this).text().trim();
+    //     console.log('carSubtitle:', title);
+    // });
+    //
+    const carModelYear = $('.vehicle-title>a>div>span.first-registration');
+    // carModel.each(function() {
+    //     let title = $(this).text().trim();
+    //     console.log('carModel:', title);
+    // });
+    //
+    const carDistance = $('.vehicle-title>a>div>span.mileage');
+    // carDistance.each(function() {
+    //     let title = $(this).text().trim();
+    //     console.log('carDistance:', title);
+    // });
+    //
+    const carPetrol = $('.vehicle-title>a>div>span.petrol');
+    // carPetrol.each(function() {
+    //     let title = $(this).text().trim();
+    //     console.log('carPetrol:', title);
+    // });
+    //
+    const carPower = $('.vehicle-title>a>div>span.power');
+    // carPower.each(function() {
+    //     let title = $(this).text().trim();
+    //     console.log('carPower:', title);
+    // });
+    //
+    const carGear = $('.vehicle-title>a>div>span.gear');
+    // carGear.each(function() {
+    //     let title = $(this).text().trim();
+    //     console.log('carGear:', title);
+    // });
+    //
+    const carColor = $('.vehicle-title>a>div>span.color');
+    // carColor.each(function() {
+    //     let title = $(this).text().trim();
+    //     console.log('carColor:', title);
+    // });
+
+    const carConsumption = $('.search-result-vehicle-box>.vehicle-info-container>.vehicle-info>.row:nth-child(1)>div>.value');
+    // carConsumption.each(function() {
+    //     let info = $(this).text().trim();
+    //     console.log('carConsumption:', info);
+    // });
+
+    const carCO2 = $('.search-result-vehicle-box>.vehicle-info-container>.vehicle-info>.row:nth-child(2)>div>.value');
+    // carCO2.each(function() {
+    //     let info = $(this).text().trim();
+    //     console.log('carInfo:', info);
+    // });
+
+    for (let i = 0; i < carPrice.length; i++) {
+        const car = {
+            'carName': carName[i]?.children[0].data.trim(),
+            'carPrice': carPrice[i]?.children[0].data.trim(),
+            'carSubtitle': carSubtitle[i]?.children[0].data.trim(),
+            'carModelYear': carModelYear[i]?.children[0].data.trim(),
+            'carDistance': carDistance[i]?.children[0].data.trim(),
+            'carPetrol': carPetrol[i]?.children[0].data.trim(),
+            'carPower': carPower[i]?.children[0].data.trim(),
+            'carGear': carGear[i]?.children[0].data.trim(),
+            'carColor': carColor[i]?.children[0].data.trim(),
+            'carConsumption': carConsumption[i]?.children[0].data.trim(),
+            'carCO2': carCO2[i]?.children[0].data.trim(),
+        };
+        console.log(car);
+    };
+
+})
+
+
+
+
+async function fetchData(url){
+    console.log("Crawling data...")
+    // make http call to url
+    let response = await axios(url).catch((err) => console.log(err));
+
+    if(response.status !== 200){
+        console.log("Error occurred while fetching data");
+        return;
     }
-    console.clear();
-    console.log("dict:", dictionary);
+    return response;
 }
 
-async function* get_data(word) {
-    const html = await get_word_html(word);
-    const table_start = html.indexOf("<TABLE width=60%");
-    let row_start = 0;
-    let row_end = table_start;
 
-    while (true) {
-        row_start = html.indexOf("<tr>", row_end);
-        if (row_start === -1) {
-            break;
-        }
-        row_end = html.indexOf("<tr>", row_start + 1);
-        if (row_end === -1) {
-            row_end = html.indexOf("</table>", row_start + 1);
-        }
-        const row = html.substring(row_start, row_end);
-        const first_col_start = row.indexOf("<td", row.indexOf("<td") + 1);
-        const first_col_end = row.indexOf("<td", first_col_start + 1);
-        const first_col = row.substring(first_col_start, first_col_end) + "</td>";
-        const second_col_start = row.indexOf("<td", first_col_end);
-        const second_col_end = row.indexOf("<td", second_col_start + 1);
-        const second_col = row.substring(second_col_start, second_col_end) + "</td>";
+// const collectedData = [
+//     {car_title: "carName", car_subtitle:"dd.", car_price: "carPrice", model:"1995", km:"123.123km", car_info: "carInfo", kw:"107kw", farbe:"schwarz", verbrauch: "6.60", co:"123gkm"}
+// ]
 
-        try {
-            const left_value = q(first_col).find("a").text;
-            const right_value = q(second_col).find("span").text;
-            if (right_value.trim() === word) {
-                yield left_value.trim();
-            } else {
-                console.log("h1", right_value.trim(), word);
-            }
-        } catch (e) {
-        }
-    }
-}
-
-export async function get_word_html(word) {
-    const response = await axios({
-        method: 'post',
-        url: 'https://pauctle.com/aztr/index.php',
-        data: `searchterm=${word}&search.x=0&search.y=0&lang=AZ`,
-        headers: {
-            "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
-            "accept-language": "en-US,en;q=0.9",
-            "cache-control": "max-age=0",
-            "content-type": "application/x-www-form-urlencoded",
-            "sec-ch-ua": "\" Not A;Brand\";v=\"99\", \"Chromium\";v=\"101\", \"Google Chrome\";v=\"101\"",
-            "sec-ch-ua-mobile": "?0",
-            "sec-ch-ua-platform": "\"macOS\"",
-            "sec-fetch-dest": "document",
-            "sec-fetch-mode": "navigate",
-            "sec-fetch-site": "same-origin",
-            "sec-fetch-user": "?1",
-            "upgrade-insecure-requests": "1",
-            "cookie": "PHPSESSID=sim3sneajama5j34akbkk72g82",
-            "Referer": "https://pauctle.com/aztr/",
-            "Referrer-Policy": "strict-origin-when-cross-origin"
-        },
-    });
-    return response.data;
-}
-
-await start();
+const collectedData = [
+    {car_title: "carName", car_subtitle:"dd.", car_price: "carPrice", model:"1995", km:"123.123km", car_info: "carInfo", kw:"107kw", farbe:"schwarz", verbrauch: "6.60", co:"123gkm"}
+]
 
 
