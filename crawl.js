@@ -1,6 +1,9 @@
 import axios from "axios";
 import cheerio from "cheerio";
-const url = "https://oa01.widget.ega.eu/widget/fahrzeuge/alle/seite/3?dontCompress=1";
+const page_number = 1;
+const data_offset = 32;
+const domain="https://oa01.widget.ega.eu"
+const url = `https://oa01.widget.ega.eu/widget/fahrzeuge/alle/module/car/controller/index/seite/1?bot=iamnotabot&dontCompress=1&offset=4&resultorder=PreisLaden&resultdirection=ASC`;
 
 
 
@@ -15,6 +18,7 @@ fetchData(url).then( (res) => {
     //     console.log('carPrice:', price);
     // });
 
+    const carImage = $('.search-result-vehicle-box>.vehicle-image-container>a>.vehicle-image-wrap>img');
 
 
     const carName = $('.vehicle-title>a .brand-and-model');
@@ -83,6 +87,7 @@ fetchData(url).then( (res) => {
     for (let i = 0; i < carPrice.length; i++) {
         const car = {
             'carName': carName[i]?.children[0].data.trim(),
+            'carImage': domain+carImage[i]?.attribs['src'],
             'carPrice': carPrice[i]?.children[0].data.trim(),
             'carSubtitle': carSubtitle[i]?.children[0].data.trim(),
             'carModelYear': carModelYear[i]?.children[0].data.trim(),
@@ -95,8 +100,8 @@ fetchData(url).then( (res) => {
             'carCO2': carCO2[i]?.children[0].data.trim(),
         };
         console.log(car);
-    };
 
+    };
 })
 
 
