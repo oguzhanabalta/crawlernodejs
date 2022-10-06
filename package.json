@@ -12,6 +12,7 @@
   "dependencies": {
     "axios": "0.27.2",
     "cheerio": "^1.0.0-rc.12",
+    "mongodb": "^4.10.0",
     "query-html": "1.0.0"
   }
 }
